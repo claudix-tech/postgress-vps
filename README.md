@@ -32,11 +32,28 @@ Containers in other compose projects can reach it by joining this project's netw
 
 ## Remote access
 
-Leave `POSTGRES_BIND=127.0.0.1` and use an SSH tunnel:
+Leave `POSTGRES_BIND=127.0.0.1` and use an SSH tunnel. Local port `15432` is used below so it doesn't clash
+with a local Postgres on `5432`:
 
 ```bash
-ssh -N -L 5432:127.0.0.1:5432 user@your-vps
+ssh -N -L 15432:127.0.0.1:5432 cbd@srv1542944.hstgr.cloud   # keep open, Ctrl+C to close
 ```
+
+Then connect DBeaver / psql to `localhost:15432` with the VPS credentials:
+
+```bash
+psql -h localhost -p 15432 -U app -d app
+```
+
+Background tunnel:
+
+```bash
+ssh -f -N -L 15432:127.0.0.1:5432 cbd@srv1542944.hstgr.cloud
+pkill -f 'L 15432:127.0.0.1:5432'   # close it
+```
+
+Alternatively, DBeaver can open the tunnel itself: on the **SSH** tab enable *Use SSH Tunnel*
+(host `srv1542944.hstgr.cloud`, port `22`, user `cbd`, public key auth) and keep `localhost:5432` on the Main tab.
 
 ### Listening publicly (e.g. `srv1542944.hstgr.cloud:5432`)
 
