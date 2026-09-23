@@ -38,8 +38,26 @@ Leave `POSTGRES_BIND=127.0.0.1` and use an SSH tunnel:
 ssh -N -L 5432:127.0.0.1:5432 user@your-vps
 ```
 
-If you really need to expose it publicly, set `POSTGRES_BIND=0.0.0.0` **and** restrict the port with a firewall
-(note: Docker-published ports bypass `ufw` rules by default, so use the `DOCKER-USER` iptables chain or the provider's firewall).
+### Listening publicly (e.g. `srv1542944.hstgr.cloud:5432`)
+
+Firewall the port **first**, then set in `.env` and run `docker compose up -d`:
+
+```bash
+POSTGRES_BIND=0.0.0.0   # IPv4
+POSTGRES_BIND6=::       # IPv6 (needed if the hostname only has an AAAA record)
+```
+
+Docker-published ports **bypass `ufw`**. Restrict access with the provider's firewall (Hostinger hPanel → VPS → Firewall),
+or with the `DOCKER-USER` chain, for both IPv4 and IPv6:
+
+```bash
+MYIP=203.0.113.10                         # your client's public IPv4
+sudo iptables  -I DOCKER-USER -p tcp --dport 5432 -j DROP
+sudo iptables  -I DOCKER-USER -p tcp --dport 5432 -s $MYIP -j ACCEPT
+sudo ip6tables -I DOCKER-USER -p tcp --dport 5432 -j DROP   # add an ACCEPT for your IPv6 if you use one
+```
+
+(These rules don't persist across reboots; save them with `iptables-persistent` or use the provider firewall.)
 
 ## Backups
 

@@ -7,8 +7,10 @@ services:
     environment:
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
     ports:
-      # Bound to localhost by default; set POSTGRES_BIND=0.0.0.0 only behind a firewall.
+      # Loopback only by default. For public access set POSTGRES_BIND=0.0.0.0 (IPv4)
+      # and/or POSTGRES_BIND6=:: (IPv6), and firewall the port. See README.
       - "${POSTGRES_BIND:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
+      - "[${POSTGRES_BIND6:-::1}]:${POSTGRES_PORT:-5432}:5432"
     volumes:
       # Postgres 18+ images keep versioned data under /var/lib/postgresql/<major>/docker
       - pgdata:/var/lib/postgresql
